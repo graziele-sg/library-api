@@ -2,6 +2,8 @@ package br.com.teste.libraryapi.model.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +31,7 @@ public class BookRepositoryTest {
 	public void returnTrueWhenIsbnExists() {
 		
 		String isbn = "123";
-		Book book = Book.builder().author("Fulano").title("Aventuras").isbn(isbn).build();
+		Book book = createNewBook(isbn);
 		entityManager.persist(book);
 		
 		boolean exists = repository.existsByIsbn(isbn);
@@ -47,5 +49,45 @@ public class BookRepositoryTest {
 		
 		assertThat(exists).isFalse();
 	}
+
+	@Test
+	@DisplayName("Deve obter um livro por id")
+	public void findByIdTest() {
+		
+		Book book = createNewBook("123"); 
+		entityManager.persist(book);
+		
+		Optional<Book> foundBook = repository.findById(book.getId());
+		
+		assertThat(foundBook.isPresent()).isTrue();
+	}
 	
+	private Book createNewBook(String isbn) {
+		return Book.builder().author("Artur").title("As aventuras").isbn(isbn).build();
+	}
+	
+	@Test
+	@DisplayName("Deve salvar um livro")
+	public void saveBookTest() {
+		
+		Book book = createNewBook("123");
+		
+		Book savedBook = repository.save(book);
+		
+		assertThat(savedBook.getId()).isNotNull();
+	}
+	
+	@Test
+	@DisplayName("Deve deletar um livro")
+	public void deleteBookTest() {
+		
+		Book book = createNewBook("123"); 
+		entityManager.persist(book);
+		Book foundBook = entityManager.find(Book.class, book.getId()); 
+		
+		repository.delete(foundBook);
+
+		Book deletedBook = entityManager.find(Book.class, book.getId());
+		assertThat(deletedBook).isNull();
+	}
 }
